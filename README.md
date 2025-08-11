@@ -82,7 +82,7 @@ DB_PORT=Your DB Port
 ## 📡 Run the App
 
 ```bash
-node index.js
+npm run dev
 ```
 
 > The server will start at:
@@ -120,14 +120,3 @@ node index.js
 * Use tools like **Postman** or **Insomnia** to test the API.
 
 ---
-
-## 📃 License
-
-This project is open-source and free to use.
-
-```
-
----
-
-Would you like me to generate a downloadable `README.md` file or push it into your project structure as code?
-```
