@@ -70,11 +70,11 @@ MERN
 Create a `.env` file in the root directory:
 
 ```env
-DB_NAME=MERN
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
+DB_NAME=Your DB Name
+DB_USER=Your DB User Name
+DB_PASSWORD=Your DB Password
+DB_HOST=Your DB host
+DB_PORT=Your DB Port
 ```
 
 ---
