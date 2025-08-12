@@ -1,23 +1,52 @@
 module.exports = (sequelize, DataTypes) => {
-  const Product = sequelize.define("Product", {
+  const Product = sequelize.define('Product', {
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
+      allowNull: false
     },
     price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      type: DataTypes.FLOAT,
+      allowNull: false
     },
+    category: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    stock: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    status: {
+      type: DataTypes.ENUM('active', 'out-of-stock', 'draft'),
+      defaultValue: 'active'
+    }
+  }, {
+    timestamps: true,
+    tableName: 'products'
+  });
+module.exports = (sequelize, DataTypes) => {
+  const Product = sequelize.define('Product', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.FLOAT, allowNull: false },
+    // other product fields...
     categoryId: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'Categories', // This references the table name for Category model
-        key: 'id', // This references the id column of the Category model
+        model: 'Categories', // table name
+        key: 'id',
       },
+      allowNull: false,
     },
   });
+
+  Product.associate = (models) => {
+    Product.belongsTo(models.Category, {
+      foreignKey: 'categoryId',
+      as: 'category',
+    });
+  };
+;
+};
+
   return Product;
 };

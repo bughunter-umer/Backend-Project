@@ -1,105 +1,70 @@
-const db = require("../models");
-const Order = db.Order;
-const OrderItem = db.OrderItem;
-const Product = db.Product;
-const User = db.User;
+let orders = [
+  { id: 101, customer: "Umer Daud", total: 250.0, status: "Completed", date: "2025-08-01", items: 3 },
+  { id: 102, customer: "Umair Ejaz", total: 120.5, status: "Delivered", date: "2025-07-31", items: 2 },
+  { id: 103, customer: "Raza Sherazi", total: 89.99, status: "Shipped", date: "2025-07-16", items: 1 },
+  { id: 104, customer: "Aqib Chohan", total: 320.75, status: "Processing", date: "2025-07-17", items: 5 },
+];
 
-// Create a new order with items
-exports.create = async (req, res) => {
-  try {
-    const { userId, total_amount, items } = req.body;
-
-    const order = await Order.create(
-      {
-        userId,
-        total_amount,
-        OrderItems: items, // expects [{ productId, quantity, price }]
-      },
-      {
-        include: [OrderItem],
-      }
-    );
-
-    res.status(201).json(order);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Generate new ID helper
+const getNextId = () => {
+  return orders.length ? Math.max(...orders.map(o => o.id)) + 1 : 1;
 };
 
-// Get all orders with associated User and OrderItems
-exports.findAll = async (req, res) => {
-  try {
-    const orders = await Order.findAll({
-      include: [
-        {
-          model: OrderItem,
-          include: [Product],
-        },
-        {
-          model: User,
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+exports.getAllOrders = (req, res) => {
+  res.json(orders);
 };
 
-// Get one order by ID
-exports.findOne = async (req, res) => {
-  try {
-    const order = await Order.findByPk(req.params.id, {
-      include: [
-        {
-          model: OrderItem,
-          include: [Product],
-        },
-        {
-          model: User,
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
-
-    order
-      ? res.json(order)
-      : res.status(404).json({ error: "Order not found" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+exports.getOrderById = (req, res) => {
+  const id = parseInt(req.params.id);
+  const order = orders.find(o => o.id === id);
+  if (!order) return res.status(404).json({ message: "Order not found" });
+  res.json(order);
 };
 
-// Update order by ID (excluding items)
-exports.update = async (req, res) => {
-  try {
-    const updated = await Order.update(req.body, {
-      where: { id: req.params.id },
-    });
-
-    updated[0] === 1
-      ? res.json({ message: "Order updated" })
-      : res.status(404).json({ error: "Order not found" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+exports.createOrder = (req, res) => {
+  const { customer, total, status, date, items } = req.body;
+  if (!customer || total === undefined || !status || !date || items === undefined) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
+  const newOrder = {
+    id: getNextId(),
+    customer,
+    total,
+    status,
+    date,
+    items,
+  };
+  orders.push(newOrder);
+  res.status(201).json(newOrder);
 };
 
-// Delete order and its items
-exports.delete = async (req, res) => {
-  try {
-    // First, delete related OrderItems
-    await OrderItem.destroy({ where: { orderId: req.params.id } });
+exports.updateOrder = (req, res) => {
+  const id = parseInt(req.params.id);
+  const orderIndex = orders.findIndex(o => o.id === id);
+  if (orderIndex === -1) return res.status(404).json({ message: "Order not found" });
 
-    const deleted = await Order.destroy({
-      where: { id: req.params.id },
-    });
-
-    deleted
-      ? res.json({ message: "Order deleted" })
-      : res.status(404).json({ error: "Order not found" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  const { customer, total, status, date, items } = req.body;
+  if (!customer || total === undefined || !status || !date || items === undefined) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
+
+  orders[orderIndex] = {
+    id,
+    customer,
+    total,
+    status,
+    date,
+    items,
+  };
+
+  res.json(orders[orderIndex]);
+};
+
+exports.deleteOrder = (req, res) => {
+  const id = parseInt(req.params.id);
+  const orderIndex = orders.findIndex(o => o.id === id);
+  if (orderIndex === -1) return res.status(404).json({ message: "Order not found" });
+
+  orders.splice(orderIndex, 1);
+  res.json({ message: "Order deleted successfully" });
 };
